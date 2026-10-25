@@ -4,15 +4,25 @@ import SwiftUI
 @main
 struct PomodoroBarApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @StateObject private var timer = CountdownTimer()
+    @StateObject private var engine: PomodoroEngine
+
+    init() {
+        TimerSettings.registerDefaults()
+        _engine = StateObject(wrappedValue: PomodoroEngine())
+    }
 
     var body: some Scene {
         MenuBarExtra {
-            PopoverView(timer: timer)
+            PopoverView(engine: engine)
         } label: {
-            MenuBarLabel(timer: timer)
+            MenuBarLabel(engine: engine)
         }
         .menuBarExtraStyle(.window)
+
+        Window("Настройки", id: SettingsView.windowID) {
+            SettingsView()
+        }
+        .windowResizability(.contentSize)
     }
 }
 

@@ -1,11 +1,11 @@
 import SwiftUI
 
-/// То, что видно в строке меню: «🍅 18:42».
+/// То, что видно в строке меню: «🍅 18:42» на работе, «☕ 04:10» на перерыве.
 struct MenuBarLabel: View {
-    @ObservedObject var timer: CountdownTimer
+    @ObservedObject var engine: PomodoroEngine
 
     var body: some View {
-        Text("\(timer.isPaused ? "⏸" : "🍅") \(timer.remaining.mmss)")
+        Text("\(engine.isPaused ? "⏸" : engine.phase.icon) \(engine.remaining.mmss)")
             .monospacedDigit()
     }
 }
