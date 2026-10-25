@@ -1,3 +1,4 @@
+import ServiceManagement
 import SwiftUI
 
 /// Экран настроек. Значения сохраняются в UserDefaults сразу при изменении.
@@ -9,6 +10,8 @@ struct SettingsView: View {
     @AppStorage(SettingsKey.autoStartBreaks) private var autoStartBreaks = true
     @AppStorage(SettingsKey.autoStartWork) private var autoStartWork = false
     @AppStorage(SettingsKey.soundEnabled) private var soundEnabled = true
+    // Состояние хранит сама macOS, поэтому читаем его оттуда, а не из UserDefaults.
+    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
     var body: some View {
         Form {
@@ -23,6 +26,17 @@ struct SettingsView: View {
                 Toggle("Сразу начинать перерыв", isOn: $autoStartBreaks)
                 Toggle("Сразу начинать работу после перерыва", isOn: $autoStartWork)
                 Toggle("Звук в конце интервала", isOn: $soundEnabled)
+            }
+
+            Section {
+                Toggle("Запускать при входе в систему", isOn: $launchAtLogin)
+                    .onChange(of: launchAtLogin) { enabled in
+                        setLaunchAtLogin(enabled)
+                    }
+            } footer: {
+                Text("Работает, когда приложение установлено в «Программы».")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section {
@@ -41,5 +55,21 @@ struct SettingsView: View {
         .frame(maxWidth: 560)
         .frame(maxWidth: .infinity)
         .navigationTitle("Настройки")
+    }
+
+    private func setLaunchAtLogin(_ enabled: Bool) {
+        do {
+            if enabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+        } catch {
+            NSLog("PomodoroBar: не удалось изменить запуск при входе: \(error)")
+        }
+        let actual = SMAppService.mainApp.status == .enabled
+        if actual != launchAtLogin {
+            launchAtLogin = actual
+        }
     }
 }
