@@ -1,9 +1,7 @@
 import SwiftUI
 
-/// Окно настроек. Значения сохраняются в UserDefaults сразу при изменении.
+/// Экран настроек. Значения сохраняются в UserDefaults сразу при изменении.
 struct SettingsView: View {
-    static let windowID = "settings"
-
     @AppStorage(SettingsKey.workMinutes) private var workMinutes = 25
     @AppStorage(SettingsKey.shortBreakMinutes) private var shortBreakMinutes = 5
     @AppStorage(SettingsKey.longBreakMinutes) private var longBreakMinutes = 15
@@ -40,7 +38,8 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 420)
-        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: 560)
+        .frame(maxWidth: .infinity)
+        .navigationTitle("Настройки")
     }
 }

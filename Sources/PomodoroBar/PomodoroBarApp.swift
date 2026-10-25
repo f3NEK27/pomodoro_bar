@@ -3,32 +3,31 @@ import SwiftUI
 
 @main
 struct PomodoroBarApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var engine: PomodoroEngine
+    @StateObject private var store: TaskStore
 
     init() {
         TimerSettings.registerDefaults()
-        _engine = StateObject(wrappedValue: PomodoroEngine())
+        let store = TaskStore()
+        let engine = PomodoroEngine()
+        engine.onWorkCompleted = { [weak store] in store?.recordPomodoro() }
+        _store = StateObject(wrappedValue: store)
+        _engine = StateObject(wrappedValue: engine)
     }
 
     var body: some Scene {
+        // Первая сцена открывается при запуске. После закрытия окна приложение
+        // остаётся в строке меню, окно можно вернуть из панели.
+        Window("PomodoroBar", id: MainWindow.windowID) {
+            MainWindow(engine: engine, store: store)
+        }
+        .defaultSize(width: 880, height: 580)
+
         MenuBarExtra {
-            PopoverView(engine: engine)
+            PopoverView(engine: engine, store: store)
         } label: {
             MenuBarLabel(engine: engine)
         }
         .menuBarExtraStyle(.window)
-
-        Window("Настройки", id: SettingsView.windowID) {
-            SettingsView()
-        }
-        .windowResizability(.contentSize)
-    }
-}
-
-final class AppDelegate: NSObject, NSApplicationDelegate {
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        // Без иконки в Dock: приложение живёт только в строке меню.
-        NSApp.setActivationPolicy(.accessory)
     }
 }

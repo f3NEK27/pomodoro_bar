@@ -14,8 +14,13 @@ final class PomodoroEngine: ObservableObject {
     @Published private(set) var phase: Phase = .work
     @Published private(set) var state: State = .idle
     @Published private(set) var remaining: TimeInterval
+    /// Полная длительность текущей фазы, нужна для кольца прогресса.
+    @Published private(set) var phaseDuration: TimeInterval
     /// Завершённые рабочие интервалы с запуска приложения.
     @Published private(set) var completedPomodoros = 0
+
+    /// Вызывается, когда рабочий интервал доиграл до конца (не при пропуске).
+    var onWorkCompleted: (() -> Void)?
 
     private let settings: TimerSettings
     private let notifier: Notifier
@@ -26,6 +31,7 @@ final class PomodoroEngine: ObservableObject {
         self.settings = settings
         self.notifier = notifier
         self.remaining = settings.duration(of: .work)
+        self.phaseDuration = settings.duration(of: .work)
 
         // Новая длительность из настроек сразу видна, пока таймер не запущен.
         settingsObserver = NotificationCenter.default
@@ -33,7 +39,7 @@ final class PomodoroEngine: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
                 guard let self, self.state == .idle else { return }
-                self.remaining = self.settings.duration(of: self.phase)
+                self.reset()
             }
     }
 
@@ -45,6 +51,12 @@ final class PomodoroEngine: ObservableObject {
     var isPaused: Bool {
         if case .paused = state { return true }
         return false
+    }
+
+    /// Доля пройденного времени фазы, от 0 до 1.
+    var progress: Double {
+        guard phaseDuration > 0 else { return 0 }
+        return min(1, max(0, 1 - remaining / phaseDuration))
     }
 
     /// Номер текущего помодоро в цикле до длинного перерыва, например 2 из 4.
@@ -61,7 +73,8 @@ final class PomodoroEngine: ObservableObject {
         case .running:
             return
         case .idle:
-            state = .running(endDate: Date().addingTimeInterval(settings.duration(of: phase)))
+            phaseDuration = settings.duration(of: phase)
+            state = .running(endDate: Date().addingTimeInterval(phaseDuration))
         case .paused(let left):
             state = .running(endDate: Date().addingTimeInterval(left))
         }
@@ -82,7 +95,8 @@ final class PomodoroEngine: ObservableObject {
     func reset() {
         ticker = nil
         state = .idle
-        remaining = settings.duration(of: phase)
+        phaseDuration = settings.duration(of: phase)
+        remaining = phaseDuration
     }
 
     /// Перейти к следующей фазе. Пропущенная работа не засчитывается.
@@ -112,6 +126,7 @@ final class PomodoroEngine: ObservableObject {
         let next = nextPhase(countingWork: countingWork)
         if phase == .work && countingWork {
             completedPomodoros += 1
+            onWorkCompleted?()
         }
         phase = next
         reset()
