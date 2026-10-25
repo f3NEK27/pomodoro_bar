@@ -51,7 +51,7 @@ struct MainWindow: View {
             case .settings: SettingsView()
             }
         }
-        .frame(minWidth: 760, minHeight: 520)
+        .frame(minWidth: 780, minHeight: 600)
         // Пока окно открыто, у приложения есть иконка в Dock; закрыли — живём только в строке меню.
         .onAppear {
             NSApp.setActivationPolicy(.regular)

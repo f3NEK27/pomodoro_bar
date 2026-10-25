@@ -26,7 +26,7 @@ struct PomodoroBarApp: App {
         Window("PomodoroBar", id: MainWindow.windowID) {
             MainWindow(engine: engine, store: store)
         }
-        .defaultSize(width: 880, height: 580)
+        .defaultSize(width: 940, height: 720)
 
         MenuBarExtra {
             PopoverView(engine: engine, store: store)

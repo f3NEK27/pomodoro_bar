@@ -9,72 +9,80 @@ struct TimerScreen: View {
     private var accent: Color { engine.phase.accent }
 
     var body: some View {
-        ZStack {
-            AuroraBackground(tint: tint, accent: accent, animated: engine.isRunning)
+        GeometryReader { geo in
+            // Циферблат подстраивается под высоту окна, чтобы всё помещалось без прокрутки.
+            let compact = geo.size.height < 640
+            let spacing: CGFloat = compact ? 16 : 24
+            let dial = min(340, max(180, geo.size.height - (compact ? 300 : 360)))
 
-            VStack(spacing: 24) {
-                PhaseTabs(current: engine.phase)
+            ZStack {
+                AuroraBackground(tint: tint, accent: accent, animated: engine.isRunning)
 
-                ZStack {
-                    DialRing(progress: engine.progress, tint: tint, accent: accent)
-                    VStack(spacing: 4) {
-                        Text(engine.remaining.mmss)
-                            .font(.system(size: 72, weight: .heavy, design: .rounded))
-                            .monospacedDigit()
-                            .foregroundStyle(.white)
-                            .shadow(color: tint.opacity(0.5), radius: 20)
-                        statusLine
-                            .font(.callout.weight(.medium))
-                            .foregroundStyle(.white.opacity(0.6))
+                VStack(spacing: spacing) {
+                    PhaseTabs(current: engine.phase)
+
+                    ZStack {
+                        DialRing(progress: engine.progress, tint: tint, accent: accent)
+                        VStack(spacing: 4) {
+                            Text(engine.remaining.mmss)
+                                .font(.system(size: dial * 0.22, weight: .heavy, design: .rounded))
+                                .monospacedDigit()
+                                .foregroundStyle(.white)
+                                .shadow(color: tint.opacity(0.5), radius: 20)
+                            statusLine
+                                .font(.callout.weight(.medium))
+                                .foregroundStyle(.white.opacity(0.6))
+                        }
                     }
+                    .frame(width: dial, height: dial)
+
+                    HStack(spacing: 28) {
+                        Button(action: engine.reset) {
+                            Image(systemName: "arrow.counterclockwise")
+                        }
+                        .buttonStyle(CircleButtonStyle(tint: .white, size: compact ? 44 : 50))
+                        .disabled(engine.state == .idle)
+                        .help("Начать фазу заново")
+
+                        Button(action: engine.isRunning ? engine.pause : engine.start) {
+                            Image(systemName: engine.isRunning ? "pause.fill" : "play.fill")
+                        }
+                        .buttonStyle(CircleButtonStyle(tint: tint, size: compact ? 66 : 80, filled: true))
+                        .keyboardShortcut(.space, modifiers: [])
+                        .help(engine.isRunning ? "Пауза (пробел)" : "Старт (пробел)")
+
+                        Button(action: engine.skip) {
+                            Image(systemName: "forward.end.fill")
+                        }
+                        .buttonStyle(CircleButtonStyle(tint: .white, size: compact ? 44 : 50))
+                        .help("Перейти к следующей фазе")
+                    }
+
+                    HStack(spacing: 14) {
+                        CurrentTaskCard(store: store, tint: tint)
+                        TodayCard(engine: engine, store: store, tint: tint)
+                    }
+                    .frame(maxWidth: 560)
                 }
-                .frame(width: 320, height: 320)
-
-                HStack(spacing: 28) {
-                    Button(action: engine.reset) {
-                        Image(systemName: "arrow.counterclockwise")
-                    }
-                    .buttonStyle(CircleButtonStyle(tint: .white, size: 50))
-                    .disabled(engine.state == .idle)
-                    .help("Начать фазу заново")
-
-                    Button(action: engine.isRunning ? engine.pause : engine.start) {
-                        Image(systemName: engine.isRunning ? "pause.fill" : "play.fill")
-                    }
-                    .buttonStyle(CircleButtonStyle(tint: tint, size: 82, filled: true))
-                    .keyboardShortcut(.space, modifiers: [])
-                    .help(engine.isRunning ? "Пауза (пробел)" : "Старт (пробел)")
-
-                    Button(action: engine.skip) {
-                        Image(systemName: "forward.end.fill")
-                    }
-                    .buttonStyle(CircleButtonStyle(tint: .white, size: 50))
-                    .help("Перейти к следующей фазе")
-                }
-
-                HStack(spacing: 14) {
-                    CurrentTaskCard(store: store, tint: tint)
-                    TodayCard(engine: engine, store: store, tint: tint)
-                }
-                .frame(maxWidth: 560)
-
+                .padding(.horizontal, 32)
+                .padding(.vertical, spacing)
+                .frame(width: geo.size.width, height: geo.size.height)
+            }
+        }
+        .environment(\.colorScheme, .dark)
+        // Прозрачная полоса заголовка: фон таймера уходит под неё, без белой плашки сверху.
+        .toolbarBackground(.hidden, for: .windowToolbar)
+        .navigationTitle("")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
                 Button {
                     FocusMusic.openInSpotify()
                 } label: {
                     Label("Музыка для фокуса", systemImage: "music.note")
-                        .font(.callout.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.85))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(.ultraThinMaterial, in: Capsule())
-                        .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1))
                 }
-                .buttonStyle(.plain)
                 .help("Открыть плейлист в Spotify")
             }
-            .padding(32)
         }
-        .environment(\.colorScheme, .dark)
     }
 
     @ViewBuilder
