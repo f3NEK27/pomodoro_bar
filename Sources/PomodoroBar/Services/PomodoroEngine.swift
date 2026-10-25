@@ -21,6 +21,8 @@ final class PomodoroEngine: ObservableObject {
 
     /// Вызывается, когда рабочий интервал доиграл до конца (не при пропуске).
     var onWorkCompleted: (() -> Void)?
+    /// Вызывается при старте нового рабочего интервала (не при снятии с паузы).
+    var onFocusStarted: (() -> Void)?
 
     private let settings: TimerSettings
     private let notifier: Notifier
@@ -75,6 +77,9 @@ final class PomodoroEngine: ObservableObject {
         case .idle:
             phaseDuration = settings.duration(of: phase)
             state = .running(endDate: Date().addingTimeInterval(phaseDuration))
+            if phase == .work {
+                onFocusStarted?()
+            }
         case .paused(let left):
             state = .running(endDate: Date().addingTimeInterval(left))
         }

@@ -1,6 +1,6 @@
 import Foundation
 
-enum Phase: String {
+enum Phase: String, CaseIterable {
     case work
     case shortBreak
     case longBreak

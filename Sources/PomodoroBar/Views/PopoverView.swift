@@ -45,21 +45,28 @@ struct PopoverView: View {
 
             if !store.openTasks.isEmpty {
                 Divider()
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 8) {
                     ForEach(store.openTasks.prefix(5)) { task in
-                        Toggle(isOn: Binding(
-                            get: { task.isDone },
-                            set: { store.setDone(task.id, $0) }
-                        )) {
+                        HStack(spacing: 8) {
+                            RoundCheckbox(isOn: task.isDone, tint: tint, size: 16) {
+                                store.setDone(task.id, !task.isDone)
+                            }
                             Text(task.title)
                                 .fontWeight(store.currentTaskID == task.id ? .semibold : .regular)
                                 .lineLimit(1)
                         }
-                        .toggleStyle(.checkbox)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+
+            Button {
+                FocusMusic.openInSpotify()
+            } label: {
+                Label("Музыка для фокуса", systemImage: "music.note")
+                    .frame(maxWidth: .infinity)
+            }
+            .controlSize(.large)
 
             Divider()
 

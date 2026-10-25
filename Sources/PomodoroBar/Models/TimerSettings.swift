@@ -9,6 +9,7 @@ enum SettingsKey {
     static let autoStartBreaks = "autoStartBreaks"
     static let autoStartWork = "autoStartWork"
     static let soundEnabled = "soundEnabled"
+    static let openMusicOnFocus = "openMusicOnFocus"
 }
 
 struct TimerSettings {
@@ -20,6 +21,7 @@ struct TimerSettings {
         SettingsKey.autoStartBreaks: true,
         SettingsKey.autoStartWork: false,
         SettingsKey.soundEnabled: true,
+        SettingsKey.openMusicOnFocus: false,
     ]
 
     var defaults: UserDefaults = .standard
@@ -30,6 +32,7 @@ struct TimerSettings {
 
     var cyclesBeforeLongBreak: Int { max(1, defaults.integer(forKey: SettingsKey.cyclesBeforeLongBreak)) }
     var soundEnabled: Bool { defaults.bool(forKey: SettingsKey.soundEnabled) }
+    var openMusicOnFocus: Bool { defaults.bool(forKey: SettingsKey.openMusicOnFocus) }
 
     func duration(of phase: Phase) -> TimeInterval {
         let key: String

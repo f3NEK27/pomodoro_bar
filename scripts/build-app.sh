@@ -8,9 +8,10 @@ swift build -c release
 
 APP=build/PomodoroBar.app
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp .build/release/PomodoroBar "$APP/Contents/MacOS/"
 cp Resources/Info.plist "$APP/Contents/"
+iconutil -c icns Resources/AppIcon.iconset -o "$APP/Contents/Resources/AppIcon.icns"
 codesign --force --sign - "$APP"
 
 if [ "$1" = "--install" ]; then

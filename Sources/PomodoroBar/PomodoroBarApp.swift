@@ -11,6 +11,11 @@ struct PomodoroBarApp: App {
         let store = TaskStore()
         let engine = PomodoroEngine()
         engine.onWorkCompleted = { [weak store] in store?.recordPomodoro() }
+        engine.onFocusStarted = {
+            if TimerSettings().openMusicOnFocus {
+                FocusMusic.openInSpotify()
+            }
+        }
         _store = StateObject(wrappedValue: store)
         _engine = StateObject(wrappedValue: engine)
     }

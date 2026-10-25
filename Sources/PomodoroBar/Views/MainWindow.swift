@@ -6,13 +6,14 @@ struct MainWindow: View {
     static let windowID = "main"
 
     enum Screen: String, CaseIterable, Identifiable {
-        case timer, tasks, settings
+        case timer, tasks, music, settings
         var id: Self { self }
 
         var title: String {
             switch self {
             case .timer: return "Таймер"
             case .tasks: return "Задачи"
+            case .music: return "Музыка"
             case .settings: return "Настройки"
             }
         }
@@ -21,6 +22,7 @@ struct MainWindow: View {
             switch self {
             case .timer: return "timer"
             case .tasks: return "checklist"
+            case .music: return "music.note"
             case .settings: return "gearshape"
             }
         }
@@ -36,6 +38,7 @@ struct MainWindow: View {
                 Label(item.title, systemImage: item.symbol)
                     .tag(item)
             }
+            .listStyle(.sidebar)
             .navigationSplitViewColumnWidth(min: 170, ideal: 190)
             .safeAreaInset(edge: .bottom) {
                 SidebarStatus(engine: engine, store: store)
@@ -44,6 +47,7 @@ struct MainWindow: View {
             switch screen ?? .timer {
             case .timer: TimerScreen(engine: engine, store: store)
             case .tasks: TasksScreen(store: store)
+            case .music: MusicScreen()
             case .settings: SettingsView()
             }
         }
